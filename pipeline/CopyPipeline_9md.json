@@ -1,0 +1,59 @@
+{
+	"name": "CopyPipeline_9md",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_9md",
+				"type": "Copy",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [
+					{
+						"name": "Source",
+						"value": "adfv2tutorial/inputEmp.txt"
+					},
+					{
+						"name": "Destination",
+						"value": "[dbo].[emp]"
+					}
+				],
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": false
+					},
+					"sink": {
+						"type": "SqlSink",
+						"writeBatchSize": 10000
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"columnMappings": {
+							"Prop_0": "FirstName",
+							"Prop_1": "LastName"
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "SourceDataset_9md",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DestinationDataset_9md",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

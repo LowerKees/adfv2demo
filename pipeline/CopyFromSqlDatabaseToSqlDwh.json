@@ -1,0 +1,1182 @@
+{
+	"name": "CopyFromSqlDatabaseToSqlDwh",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_xqz",
+				"type": "ForEach",
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.cw_items",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_xqz",
+							"type": "Copy",
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "@{item().source.tableName}"
+								},
+								{
+									"name": "Destination",
+									"value": "@{item().destination.tableName}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "SqlSource"
+								},
+								"sink": {
+									"type": "SqlDWSink",
+									"allowPolyBase": true,
+									"writeBatchSize": 10000,
+									"preCopyScript": {
+										"value": "@item().copySink.preCopyScript",
+										"type": "Expression"
+									},
+									"polyBaseSettings": {
+										"rejectValue": 0,
+										"rejectType": "value",
+										"useTypeDefault": true
+									}
+								},
+								"enableStaging": true,
+								"stagingSettings": {
+									"linkedServiceName": {
+										"referenceName": "AzureBlobStorage",
+										"type": "LinkedServiceReference"
+									}
+								},
+								"translator": {
+									"value": "@item().copyActivity.translator",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SourceDataset_xqz",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_structure": "@item().source.structure",
+										"cw_tableName": "@item().source.tableName"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DestinationDataset_xqz",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_structure": "@item().destination.structure",
+										"cw_tableName": "@item().destination.tableName"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"cw_items": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "AddressID",
+									"type": "Int32"
+								},
+								{
+									"name": "AddressLine1",
+									"type": "String"
+								},
+								{
+									"name": "AddressLine2",
+									"type": "String"
+								},
+								{
+									"name": "City",
+									"type": "String"
+								},
+								{
+									"name": "StateProvince",
+									"type": "String"
+								},
+								{
+									"name": "CountryRegion",
+									"type": "String"
+								},
+								{
+									"name": "PostalCode",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[Address]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "AddressID",
+									"type": "Int32"
+								},
+								{
+									"name": "AddressLine1",
+									"type": "String"
+								},
+								{
+									"name": "AddressLine2",
+									"type": "String"
+								},
+								{
+									"name": "City",
+									"type": "String"
+								},
+								{
+									"name": "StateProvince",
+									"type": "String"
+								},
+								{
+									"name": "CountryRegion",
+									"type": "String"
+								},
+								{
+									"name": "PostalCode",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[Address]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[Address]', 'U') IS NULL CREATE TABLE [SalesLT].[Address] ([AddressID] int,\n[AddressLine1] nvarchar(60),\n[AddressLine2] nvarchar(60),\n[City] nvarchar(30),\n[StateProvince] nvarchar(50),\n[CountryRegion] nvarchar(50),\n[PostalCode] nvarchar(15),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"AddressID": "AddressID",
+									"AddressLine1": "AddressLine1",
+									"AddressLine2": "AddressLine2",
+									"City": "City",
+									"StateProvince": "StateProvince",
+									"CountryRegion": "CountryRegion",
+									"PostalCode": "PostalCode",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "CustomerID",
+									"type": "Int32"
+								},
+								{
+									"name": "NameStyle",
+									"type": "Boolean"
+								},
+								{
+									"name": "Title",
+									"type": "String"
+								},
+								{
+									"name": "FirstName",
+									"type": "String"
+								},
+								{
+									"name": "MiddleName",
+									"type": "String"
+								},
+								{
+									"name": "LastName",
+									"type": "String"
+								},
+								{
+									"name": "Suffix",
+									"type": "String"
+								},
+								{
+									"name": "CompanyName",
+									"type": "String"
+								},
+								{
+									"name": "SalesPerson",
+									"type": "String"
+								},
+								{
+									"name": "EmailAddress",
+									"type": "String"
+								},
+								{
+									"name": "Phone",
+									"type": "String"
+								},
+								{
+									"name": "PasswordHash",
+									"type": "String"
+								},
+								{
+									"name": "PasswordSalt",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[Customer]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "CustomerID",
+									"type": "Int32"
+								},
+								{
+									"name": "NameStyle",
+									"type": "Boolean"
+								},
+								{
+									"name": "Title",
+									"type": "String"
+								},
+								{
+									"name": "FirstName",
+									"type": "String"
+								},
+								{
+									"name": "MiddleName",
+									"type": "String"
+								},
+								{
+									"name": "LastName",
+									"type": "String"
+								},
+								{
+									"name": "Suffix",
+									"type": "String"
+								},
+								{
+									"name": "CompanyName",
+									"type": "String"
+								},
+								{
+									"name": "SalesPerson",
+									"type": "String"
+								},
+								{
+									"name": "EmailAddress",
+									"type": "String"
+								},
+								{
+									"name": "Phone",
+									"type": "String"
+								},
+								{
+									"name": "PasswordHash",
+									"type": "String"
+								},
+								{
+									"name": "PasswordSalt",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[Customer]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[Customer]', 'U') IS NULL CREATE TABLE [SalesLT].[Customer] ([CustomerID] int,\n[NameStyle] bit,\n[Title] nvarchar(8),\n[FirstName] nvarchar(50),\n[MiddleName] nvarchar(50),\n[LastName] nvarchar(50),\n[Suffix] nvarchar(10),\n[CompanyName] nvarchar(128),\n[SalesPerson] nvarchar(256),\n[EmailAddress] nvarchar(50),\n[Phone] nvarchar(25),\n[PasswordHash] varchar(128),\n[PasswordSalt] varchar(10),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"CustomerID": "CustomerID",
+									"NameStyle": "NameStyle",
+									"Title": "Title",
+									"FirstName": "FirstName",
+									"MiddleName": "MiddleName",
+									"LastName": "LastName",
+									"Suffix": "Suffix",
+									"CompanyName": "CompanyName",
+									"SalesPerson": "SalesPerson",
+									"EmailAddress": "EmailAddress",
+									"Phone": "Phone",
+									"PasswordHash": "PasswordHash",
+									"PasswordSalt": "PasswordSalt",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "CustomerID",
+									"type": "Int32"
+								},
+								{
+									"name": "AddressID",
+									"type": "Int32"
+								},
+								{
+									"name": "AddressType",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[CustomerAddress]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "CustomerID",
+									"type": "Int32"
+								},
+								{
+									"name": "AddressID",
+									"type": "Int32"
+								},
+								{
+									"name": "AddressType",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[CustomerAddress]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[CustomerAddress]', 'U') IS NULL CREATE TABLE [SalesLT].[CustomerAddress] ([CustomerID] int,\n[AddressID] int,\n[AddressType] nvarchar(50),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"CustomerID": "CustomerID",
+									"AddressID": "AddressID",
+									"AddressType": "AddressType",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "ProductID",
+									"type": "Int32"
+								},
+								{
+									"name": "ThumbNailPhoto",
+									"type": "Byte[]"
+								},
+								{
+									"name": "ThumbnailPhotoFileName",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "Weight",
+									"type": "Decimal"
+								},
+								{
+									"name": "ProductCategoryID",
+									"type": "Int32"
+								},
+								{
+									"name": "ProductModelID",
+									"type": "Int32"
+								},
+								{
+									"name": "SellStartDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "SellEndDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "DiscontinuedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "Name",
+									"type": "String"
+								},
+								{
+									"name": "ProductNumber",
+									"type": "String"
+								},
+								{
+									"name": "Color",
+									"type": "String"
+								},
+								{
+									"name": "StandardCost",
+									"type": "Decimal"
+								},
+								{
+									"name": "ListPrice",
+									"type": "Decimal"
+								},
+								{
+									"name": "Size",
+									"type": "String"
+								}
+							],
+							"tableName": "[SalesLT].[Product]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "ProductID",
+									"type": "Int32"
+								},
+								{
+									"name": "ThumbNailPhoto",
+									"type": "Byte[]"
+								},
+								{
+									"name": "ThumbnailPhotoFileName",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "Weight",
+									"type": "Decimal"
+								},
+								{
+									"name": "ProductCategoryID",
+									"type": "Int32"
+								},
+								{
+									"name": "ProductModelID",
+									"type": "Int32"
+								},
+								{
+									"name": "SellStartDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "SellEndDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "DiscontinuedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "Name",
+									"type": "String"
+								},
+								{
+									"name": "ProductNumber",
+									"type": "String"
+								},
+								{
+									"name": "Color",
+									"type": "String"
+								},
+								{
+									"name": "StandardCost",
+									"type": "Decimal"
+								},
+								{
+									"name": "ListPrice",
+									"type": "Decimal"
+								},
+								{
+									"name": "Size",
+									"type": "String"
+								}
+							],
+							"tableName": "[SalesLT].[Product]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[Product]', 'U') IS NULL CREATE TABLE [SalesLT].[Product] ([ProductID] int,\n[ThumbNailPhoto] varbinary(8000),\n[ThumbnailPhotoFileName] nvarchar(50),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[Weight] decimal(8,2),\n[ProductCategoryID] int,\n[ProductModelID] int,\n[SellStartDate] datetime,\n[SellEndDate] datetime,\n[DiscontinuedDate] datetime,\n[Name] nvarchar(50),\n[ProductNumber] nvarchar(25),\n[Color] nvarchar(15),\n[StandardCost] money,\n[ListPrice] money,\n[Size] nvarchar(5));\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"ProductID": "ProductID",
+									"ThumbNailPhoto": "ThumbNailPhoto",
+									"ThumbnailPhotoFileName": "ThumbnailPhotoFileName",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate",
+									"Weight": "Weight",
+									"ProductCategoryID": "ProductCategoryID",
+									"ProductModelID": "ProductModelID",
+									"SellStartDate": "SellStartDate",
+									"SellEndDate": "SellEndDate",
+									"DiscontinuedDate": "DiscontinuedDate",
+									"Name": "Name",
+									"ProductNumber": "ProductNumber",
+									"Color": "Color",
+									"StandardCost": "StandardCost",
+									"ListPrice": "ListPrice",
+									"Size": "Size"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "ProductCategoryID",
+									"type": "Int32"
+								},
+								{
+									"name": "ParentProductCategoryID",
+									"type": "Int32"
+								},
+								{
+									"name": "Name",
+									"type": "String"
+								}
+							],
+							"tableName": "[SalesLT].[ProductCategory]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "ProductCategoryID",
+									"type": "Int32"
+								},
+								{
+									"name": "ParentProductCategoryID",
+									"type": "Int32"
+								},
+								{
+									"name": "Name",
+									"type": "String"
+								}
+							],
+							"tableName": "[SalesLT].[ProductCategory]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductCategory]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductCategory] ([rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[ProductCategoryID] int,\n[ParentProductCategoryID] int,\n[Name] nvarchar(50));\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate",
+									"ProductCategoryID": "ProductCategoryID",
+									"ParentProductCategoryID": "ParentProductCategoryID",
+									"Name": "Name"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "ProductDescriptionID",
+									"type": "Int32"
+								},
+								{
+									"name": "Description",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								}
+							],
+							"tableName": "[SalesLT].[ProductDescription]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "ProductDescriptionID",
+									"type": "Int32"
+								},
+								{
+									"name": "Description",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								}
+							],
+							"tableName": "[SalesLT].[ProductDescription]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductDescription]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductDescription] ([ModifiedDate] datetime,\n[ProductDescriptionID] int,\n[Description] nvarchar(400),\n[rowguid] uniqueidentifier);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"ModifiedDate": "ModifiedDate",
+									"ProductDescriptionID": "ProductDescriptionID",
+									"Description": "Description",
+									"rowguid": "rowguid"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "ProductModelID",
+									"type": "Int32"
+								},
+								{
+									"name": "Name",
+									"type": "String"
+								},
+								{
+									"name": "CatalogDescription",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[ProductModel]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "ProductModelID",
+									"type": "Int32"
+								},
+								{
+									"name": "Name",
+									"type": "String"
+								},
+								{
+									"name": "CatalogDescription",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[ProductModel]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductModel]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductModel] ([ProductModelID] int,\n[Name] nvarchar(50),\n[CatalogDescription] varchar(8000),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"ProductModelID": "ProductModelID",
+									"Name": "Name",
+									"CatalogDescription": "CatalogDescription",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "ProductModelID",
+									"type": "Int32"
+								},
+								{
+									"name": "ProductDescriptionID",
+									"type": "Int32"
+								},
+								{
+									"name": "Culture",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[ProductModelProductDescription]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "ProductModelID",
+									"type": "Int32"
+								},
+								{
+									"name": "ProductDescriptionID",
+									"type": "Int32"
+								},
+								{
+									"name": "Culture",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[ProductModelProductDescription]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[ProductModelProductDescription]', 'U') IS NULL CREATE TABLE [SalesLT].[ProductModelProductDescription] ([ProductModelID] int,\n[ProductDescriptionID] int,\n[Culture] nchar(6),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"ProductModelID": "ProductModelID",
+									"ProductDescriptionID": "ProductDescriptionID",
+									"Culture": "Culture",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "SalesOrderID",
+									"type": "Int32"
+								},
+								{
+									"name": "SalesOrderDetailID",
+									"type": "Int32"
+								},
+								{
+									"name": "OrderQty",
+									"type": "Int16"
+								},
+								{
+									"name": "ProductID",
+									"type": "Int32"
+								},
+								{
+									"name": "UnitPrice",
+									"type": "Decimal"
+								},
+								{
+									"name": "UnitPriceDiscount",
+									"type": "Decimal"
+								},
+								{
+									"name": "LineTotal",
+									"type": "Decimal"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[SalesOrderDetail]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "SalesOrderID",
+									"type": "Int32"
+								},
+								{
+									"name": "SalesOrderDetailID",
+									"type": "Int32"
+								},
+								{
+									"name": "OrderQty",
+									"type": "Int16"
+								},
+								{
+									"name": "ProductID",
+									"type": "Int32"
+								},
+								{
+									"name": "UnitPrice",
+									"type": "Decimal"
+								},
+								{
+									"name": "UnitPriceDiscount",
+									"type": "Decimal"
+								},
+								{
+									"name": "LineTotal",
+									"type": "Decimal"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								}
+							],
+							"tableName": "[SalesLT].[SalesOrderDetail]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[SalesOrderDetail]', 'U') IS NULL CREATE TABLE [SalesLT].[SalesOrderDetail] ([SalesOrderID] int,\n[SalesOrderDetailID] int,\n[OrderQty] smallint,\n[ProductID] int,\n[UnitPrice] money,\n[UnitPriceDiscount] money,\n[LineTotal] decimal(38,6),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"SalesOrderID": "SalesOrderID",
+									"SalesOrderDetailID": "SalesOrderDetailID",
+									"OrderQty": "OrderQty",
+									"ProductID": "ProductID",
+									"UnitPrice": "UnitPrice",
+									"UnitPriceDiscount": "UnitPriceDiscount",
+									"LineTotal": "LineTotal",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate"
+								}
+							}
+						}
+					},
+					{
+						"source": {
+							"structure": [
+								{
+									"name": "SalesOrderID",
+									"type": "Int32"
+								},
+								{
+									"name": "RevisionNumber",
+									"type": "Byte"
+								},
+								{
+									"name": "OrderDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "DueDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "ShipDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "Status",
+									"type": "Byte"
+								},
+								{
+									"name": "TotalDue",
+									"type": "Decimal"
+								},
+								{
+									"name": "Comment",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "BillToAddressID",
+									"type": "Int32"
+								},
+								{
+									"name": "ShipMethod",
+									"type": "String"
+								},
+								{
+									"name": "CreditCardApprovalCode",
+									"type": "String"
+								},
+								{
+									"name": "SubTotal",
+									"type": "Decimal"
+								},
+								{
+									"name": "TaxAmt",
+									"type": "Decimal"
+								},
+								{
+									"name": "Freight",
+									"type": "Decimal"
+								},
+								{
+									"name": "OnlineOrderFlag",
+									"type": "Boolean"
+								},
+								{
+									"name": "SalesOrderNumber",
+									"type": "String"
+								},
+								{
+									"name": "PurchaseOrderNumber",
+									"type": "String"
+								},
+								{
+									"name": "AccountNumber",
+									"type": "String"
+								},
+								{
+									"name": "CustomerID",
+									"type": "Int32"
+								},
+								{
+									"name": "ShipToAddressID",
+									"type": "Int32"
+								}
+							],
+							"tableName": "[SalesLT].[SalesOrderHeader]"
+						},
+						"destination": {
+							"structure": [
+								{
+									"name": "SalesOrderID",
+									"type": "Int32"
+								},
+								{
+									"name": "RevisionNumber",
+									"type": "Byte"
+								},
+								{
+									"name": "OrderDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "DueDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "ShipDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "Status",
+									"type": "Byte"
+								},
+								{
+									"name": "TotalDue",
+									"type": "Decimal"
+								},
+								{
+									"name": "Comment",
+									"type": "String"
+								},
+								{
+									"name": "rowguid",
+									"type": "Guid"
+								},
+								{
+									"name": "ModifiedDate",
+									"type": "DateTime"
+								},
+								{
+									"name": "BillToAddressID",
+									"type": "Int32"
+								},
+								{
+									"name": "ShipMethod",
+									"type": "String"
+								},
+								{
+									"name": "CreditCardApprovalCode",
+									"type": "String"
+								},
+								{
+									"name": "SubTotal",
+									"type": "Decimal"
+								},
+								{
+									"name": "TaxAmt",
+									"type": "Decimal"
+								},
+								{
+									"name": "Freight",
+									"type": "Decimal"
+								},
+								{
+									"name": "OnlineOrderFlag",
+									"type": "Boolean"
+								},
+								{
+									"name": "SalesOrderNumber",
+									"type": "String"
+								},
+								{
+									"name": "PurchaseOrderNumber",
+									"type": "String"
+								},
+								{
+									"name": "AccountNumber",
+									"type": "String"
+								},
+								{
+									"name": "CustomerID",
+									"type": "Int32"
+								},
+								{
+									"name": "ShipToAddressID",
+									"type": "Int32"
+								}
+							],
+							"tableName": "[SalesLT].[SalesOrderHeader]"
+						},
+						"copySink": {
+							"preCopyScript": "BEGIN TRY\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'SalesLT') EXEC('Create Schema [SalesLT]');\nEND TRY\nBEGIN CATCH\nif ERROR_NUMBER() <> 2714 throw;\nEND CATCH\n\nIF OBJECT_ID('[SalesLT].[SalesOrderHeader]', 'U') IS NULL CREATE TABLE [SalesLT].[SalesOrderHeader] ([SalesOrderID] int,\n[RevisionNumber] tinyint,\n[OrderDate] datetime,\n[DueDate] datetime,\n[ShipDate] datetime,\n[Status] tinyint,\n[TotalDue] money,\n[Comment] nvarchar(4000),\n[rowguid] uniqueidentifier,\n[ModifiedDate] datetime,\n[BillToAddressID] int,\n[ShipMethod] nvarchar(50),\n[CreditCardApprovalCode] varchar(15),\n[SubTotal] money,\n[TaxAmt] money,\n[Freight] money,\n[OnlineOrderFlag] bit,\n[SalesOrderNumber] nvarchar(25),\n[PurchaseOrderNumber] nvarchar(25),\n[AccountNumber] nvarchar(15),\n[CustomerID] int,\n[ShipToAddressID] int);\n"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"columnMappings": {
+									"SalesOrderID": "SalesOrderID",
+									"RevisionNumber": "RevisionNumber",
+									"OrderDate": "OrderDate",
+									"DueDate": "DueDate",
+									"ShipDate": "ShipDate",
+									"Status": "Status",
+									"TotalDue": "TotalDue",
+									"Comment": "Comment",
+									"rowguid": "rowguid",
+									"ModifiedDate": "ModifiedDate",
+									"BillToAddressID": "BillToAddressID",
+									"ShipMethod": "ShipMethod",
+									"CreditCardApprovalCode": "CreditCardApprovalCode",
+									"SubTotal": "SubTotal",
+									"TaxAmt": "TaxAmt",
+									"Freight": "Freight",
+									"OnlineOrderFlag": "OnlineOrderFlag",
+									"SalesOrderNumber": "SalesOrderNumber",
+									"PurchaseOrderNumber": "PurchaseOrderNumber",
+									"AccountNumber": "AccountNumber",
+									"CustomerID": "CustomerID",
+									"ShipToAddressID": "ShipToAddressID"
+								}
+							}
+						}
+					}
+				]
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

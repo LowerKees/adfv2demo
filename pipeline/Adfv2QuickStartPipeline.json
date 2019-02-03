@@ -1,0 +1,55 @@
+{
+	"name": "Adfv2QuickStartPipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "CopyFromBlobToBlob",
+				"type": "Copy",
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"typeProperties": {
+					"source": {
+						"type": "BlobSource",
+						"recursive": true
+					},
+					"sink": {
+						"type": "BlobSink"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "BlobDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": "@pipeline().parameters.inputPath"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "BlobDataset",
+						"type": "DatasetReference",
+						"parameters": {
+							"path": "@pipeline().parameters.outputPath"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"inputPath": {
+				"type": "String"
+			},
+			"outputPath": {
+				"type": "String"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
